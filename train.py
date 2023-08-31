@@ -11,17 +11,17 @@ def train(cfg: dict):
 
   # See configs.yaml for all options.
   config = embodied.Config(dreamerv3.configs['defaults'])
-  config = config.update(dreamerv3.configs['medium'])
+  config = config.update(dreamerv3.configs['small'])
   config = config.update({
 	  'logdir': '~/logdir/run1',
 	  'run.train_ratio': 8,
 	  'run.log_every': 120,  # Seconds
 	  'batch_size': 4,
 	  'jax.prealloc': False,
-	  'encoder.mlp_keys': '$^',
-	  'decoder.mlp_keys': '$^',
-	  'encoder.cnn_keys': 'image',
-	  'decoder.cnn_keys': 'image',
+	  'encoder.mlp_keys': 'vector',
+	  'decoder.mlp_keys': 'vector',
+	  'encoder.cnn_keys': '$^',
+	  'decoder.cnn_keys': '$^',
 	  # 'jax.platform': 'cpu',
 	  # NH:
 	  'replay_size': 10000,
@@ -38,9 +38,9 @@ def train(cfg: dict):
 	  # embodied.logger.MLFlowOutput(logdir.name),
   ])
 
-  import crafter
+  # import crafter
   from embodied.envs import from_gym
-  crafter_env = crafter.Env()  # Replace this with your Gym env.
+  # crafter_env = crafter.Env()  # Replace this with your Gym env.
 
   from env import make_env
   env = make_env(cfg)
@@ -50,6 +50,9 @@ def train(cfg: dict):
   env = embodied.BatchEnv([env], parallel=False)
 
   agent = dreamerv3.Agent(env.obs_space, env.act_space, step, config)
+
+  breakpoint()
+
   replay = embodied.replay.Uniform(
 	  config.batch_length, config.replay_size, logdir / 'replay')
   args = embodied.Config(
