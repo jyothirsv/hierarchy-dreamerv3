@@ -1,8 +1,10 @@
+import sys
+
 import hydra
 
 
-@hydra.main(config_name='config', config_path='.')
-def train(cfg: dict):
+# @hydra.main(config_name='config', config_path='.')
+def train(cfg):
 
   import warnings
   import dreamerv3
@@ -51,8 +53,6 @@ def train(cfg: dict):
 
   agent = dreamerv3.Agent(env.obs_space, env.act_space, step, config)
 
-  breakpoint()
-
   replay = embodied.replay.Uniform(
 	  config.batch_length, config.replay_size, logdir / 'replay')
   args = embodied.Config(
@@ -62,5 +62,11 @@ def train(cfg: dict):
   # embodied.run.eval_only(agent, env, logger, args)
 
 
+@hydra.main(config_name='config', config_path='.')
+def launch(cfg: dict):
+  sys.argv = sys.argv[:1]
+  train(cfg)
+
+
 if __name__ == '__main__':
-  train()
+  launch()

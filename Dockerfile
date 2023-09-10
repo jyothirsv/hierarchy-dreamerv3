@@ -59,3 +59,8 @@ COPY . /embodied
 RUN chown -R 1000:root /embodied && chmod -R 775 /embodied
 
 WORKDIR embodied
+
+# NH
+RUN pip3 install gym==0.21.0 torch torchvision kornia termcolor wandb ffmpeg imageio imageio-ffmpeg \
+  omegaconf hydra-core hydra-submitit-launcher submitit tqdm mujoco==2.3.1 mujoco-py==2.1.2.14 moviepy \
+  git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb 
