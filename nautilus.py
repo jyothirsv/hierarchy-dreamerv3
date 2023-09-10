@@ -43,7 +43,7 @@ def submit(args, name):
 		image='latest',
 		pvc='nh-fast-vol2',
 		wandb_key='769a7a5e42ea92f54891f469925367f38ce6400f',
-		cmd=f'python3 /code/train.py {args}',
+		cmd=f'python3 train.py {args}',
 		cpu=2,
 		mem=16,
 		gpu=1,
