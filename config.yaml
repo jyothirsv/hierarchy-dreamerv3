@@ -3,7 +3,7 @@ defaults:
 
 # task
 task: cheetah-run
-steps: 10000000
+steps: 2000000
 obs_mode: state
 
 # planning
