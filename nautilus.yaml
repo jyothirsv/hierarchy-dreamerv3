@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{name}}
+spec:
+  template:
+    spec:
+      containers:
+      - name: {{name}}
+        image: {{user}}/{{project}}:{{image}}
+        workingDir: /root
+        imagePullPolicy: Always
+        command: ["/bin/bash"]
+        args: ["-c", ">- cp -r /{{pvc}}/.ssh /root && git clone git@github.com:{{user}}/{{project}}.git && pip install 
+git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb && cd {{project}} && wandb login {{wandb_key}} && {{cmd}}"]
+        resources:
+          requests:
+            cpu: "{{cpu}}"
+            memory: {{mem}}Gi
+            nvidia.com/gpu: "{{gpu}}"
+          limits:
+            cpu: "{{cpu}}"
+            memory: {{mem}}Gi
+            nvidia.com/gpu: "{{gpu}}"
+        volumeMounts:
+          - mountPath: /dev/shm
+            name: dshm
+          - mountPath: /{{pvc}}
+            name: {{pvc}}
+      restartPolicy: Never
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+        - name: {{pvc}}
+          persistentVolumeClaim:
+            claimName: {{pvc}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nautilus.io/group
+                    operator: {{haosu}}
+                    values:
+                      - haosu
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - rci-nrp-gpu-01.sdsu.edu
+                      - rci-nrp-gpu-02.sdsu.edu
+                      - rci-nrp-gpu-03.sdsu.edu
+                      - rci-nrp-gpu-04.sdsu.edu
+                      - rci-nrp-gpu-05.sdsu.edu
+                      - rci-nrp-gpu-06.sdsu.edu
+                      - rci-nrp-gpu-07.sdsu.edu
+                      - rci-nrp-gpu-08.sdsu.edu
+  backoffLimit: 5
