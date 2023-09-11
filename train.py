@@ -54,7 +54,7 @@ def train(cfg):
 	config = config.update(dreamerv3.configs['small'])
 	config = config.update({
 		'logdir': f'~/logdir/{cfg.task}-{cfg.exp_name}-{cfg.seed}-{rand_str()}',
-		'run.train_ratio': 8,
+		'run.train_ratio': 512,
 		'run.log_every': 120,  # Seconds
 		'run.steps': cfg.steps+1000,
 		'run.eval_every': cfg.eval_freq,
@@ -66,8 +66,6 @@ def train(cfg):
 		'decoder.mlp_keys': 'vector',
 		'encoder.cnn_keys': '$^',
 		'decoder.cnn_keys': '$^',
-		# 'jax.platform': 'cpu',
-		# NH:
 		'replay_size': 1_000_000,
 	})
 	config = embodied.Flags(config).parse()
