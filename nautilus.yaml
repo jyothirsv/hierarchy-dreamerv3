@@ -11,7 +11,7 @@ spec:
         workingDir: /root
         imagePullPolicy: Always
         command: ["/bin/bash"]
-        args: ["-c", ">- cp -r /{{pvc}}/.ssh /root && git clone git@github.com:{{user}}/{{project}}.git && pip install 
+        args: ["-c", ">- cp -r /{{pvc}}/.ssh /root && git clone git@github.com:{{user}}/{{project}}.git && pip3 install 
 git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb && cd {{project}} && wandb login {{wandb_key}} && ls && {{cmd}}"]
         resources:
           requests:
