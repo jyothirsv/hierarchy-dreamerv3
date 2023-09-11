@@ -44,6 +44,10 @@ git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cb
                     operator: {{haosu}}
                     values:
                       - haosu
+                  - key: nvidia.com/gpu.product
+                    operator: NotIn
+                    values:
+                      - NVIDIA-GeForce-RTX-1080-Ti
                   - key: kubernetes.io/hostname
                     operator: NotIn
                     values:
