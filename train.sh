@@ -1,1 +1,1 @@
-docker run -it --rm --gpus 1 -v /data2/nihansen/code/dreamerv3:/code img:latest /bin/bash -c "cd /code && python train.py task=cartpole-balance seed=1"
+docker run -it --rm --gpus 1 -v /data2/nihansen/code/dreamerv3:/code nicklashansen/dreamerv3:latest /bin/bash -c "cd /code && wandb login 769a7a5e42ea92f54891f469925367f38ce6400f && python3 train.py task=cartpole-balance seed=1"
