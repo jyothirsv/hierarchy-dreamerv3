@@ -7,8 +7,8 @@ import gym
 import numpy as np
 
 from envs.dmcontrol import make_env as make_dm_control_env
-# from envs.maniskill import make_env as make_maniskill_env
-# from envs.metaworld import make_env as make_metaworld_env
+from envs.maniskill import make_env as make_maniskill_env
+from envs.metaworld import make_env as make_metaworld_env
 # from envs.myosuite import make_env as make_myosuite_env
 # from envs.xarm import make_env as make_xarm_env
 # from envs.robopianist import make_env as make_robopianist_env
@@ -56,7 +56,7 @@ def make_env(cfg):
 	"""
 	gym.logger.set_level(40)
 	env = None
-	for fn in [make_dm_control_env]: #, make_maniskill_env, make_metaworld_env, make_myosuite_env, make_xarm_env, make_robopianist_env]:
+	for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env]: #, make_myosuite_env, make_xarm_env, make_robopianist_env]:
 		try:
 			env = fn(cfg)
 		except UnknownTaskError:
