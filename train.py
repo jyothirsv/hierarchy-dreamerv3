@@ -56,7 +56,7 @@ def train(cfg):
 		'logdir': f'~/logdir/{cfg.task}-{cfg.exp_name}-{cfg.seed}-{rand_str()}',
 		'run.train_ratio': 512,
 		'run.log_every': 120,  # Seconds
-		'run.steps': cfg.steps+1000,
+		'run.steps': cfg.steps+25_000,
 		'run.eval_every': cfg.eval_freq,
 		'run.eval_eps': cfg.eval_episodes,
 		'envs.amount': 1,
