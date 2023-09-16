@@ -67,7 +67,7 @@ buffer_dir: /data2/nihansen/code/tdmpcv2/buffer
 
 # misc
 seed: 1
-exp_name: s-ratio512
+exp_name: 0915-s-ratio512
 eval_freq: 50000
 eval_episodes: 10
 save_video: true
