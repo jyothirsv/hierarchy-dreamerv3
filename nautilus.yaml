@@ -39,12 +39,8 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: nautilus.io/group
-                    operator: {{haosu}}
-                    values:
-                      - haosu
                   - key: nvidia.com/gpu.product
                     operator: In
                     values:
                       - NVIDIA-A10
-  backoffLimit: 5
+  backoffLimit: 1

@@ -5,8 +5,6 @@ import numpy as np
 from envs.time_limit import TimeLimit
 from envs.exceptions import UnknownTaskError
 from gym.spaces import Box, Dict
-import torch
-import kornia.augmentation as K
 
 import mani_skill2.envs
 from mani_skill2.utils.common import flatten_state_dict, flatten_dict_space_keys, flatten_dict_keys

@@ -114,12 +114,19 @@ def train(cfg):
 		args)
 	# train_overwrite.train_eval(agent, env, replay, logger, args)
 	# embodied.run.eval_only(agent, env, logger, args)
+	print('Completed training (for real this time)')
 
 
 @hydra.main(config_name='config', config_path='.')
 def launch(cfg: dict):
 	sys.argv = sys.argv[:1]
-	train(cfg)
+	try:
+		train(cfg)
+	# account for free() invalid pointer error
+	except Exception as e:
+		print('Error in train.py:')
+		print(e)
+		pass
 
 
 if __name__ == '__main__':
