@@ -77,21 +77,42 @@ def train(cfg):
 		WandBOutput(logdir.name, cfg),
 	])
 
+	# from embodied.envs import from_gym
+	import from_gym_overwrite
+	# env = from_gym.FromGym(env, obs_key='vector')
+	
+	# train
 	env = make_env(cfg)
-
-	from embodied.envs import from_gym
-	env = from_gym.FromGym(env, obs_key='vector')
+	env = from_gym_overwrite.FromGym(env, obs_key='vector')
 	env = dreamerv3.wrap_env(env, config)
 	env = embodied.BatchEnv([env], parallel=False)
+
+	# eval
+	eval_env = make_env(cfg, eval=True)
+	eval_env = from_gym_overwrite.FromGym(eval_env, obs_key='vector')
+	eval_env = dreamerv3.wrap_env(eval_env, config)
+	eval_env = embodied.BatchEnv([eval_env], parallel=False)
 
 	agent = dreamerv3.Agent(env.obs_space, env.act_space, step, config)
 
 	replay = embodied.replay.Uniform(
 		config.batch_length, config.replay_size, logdir / 'replay')
+	eval_replay = embodied.replay.Uniform(
+		config.batch_length, config.replay_size, logdir / 'eval_replay')
 	args = embodied.Config(
 		**config.run, logdir=config.logdir,
 		batch_steps=config.batch_size * config.batch_length)
-	embodied.run.train(agent, env, replay, logger, args)
+	# embodied.run.train(agent, env, replay, logger, args)
+	import train_overwrite, train_eval_overwrite
+	train_eval_overwrite.train_eval(
+		agent,
+		env,
+		eval_env,
+		replay,
+		eval_replay,
+		logger,
+		args)
+	# train_overwrite.train_eval(agent, env, replay, logger, args)
 	# embodied.run.eval_only(agent, env, logger, args)
 
 

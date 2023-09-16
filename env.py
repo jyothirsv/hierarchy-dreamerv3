@@ -7,7 +7,7 @@ import gym
 import numpy as np
 
 from envs.dmcontrol import make_env as make_dm_control_env
-from envs.maniskill import make_env as make_maniskill_env
+# from envs.maniskill import make_env as make_maniskill_env
 from envs.metaworld import make_env as make_metaworld_env
 # from envs.myosuite import make_env as make_myosuite_env
 # from envs.xarm import make_env as make_xarm_env
@@ -50,20 +50,26 @@ class TensorWrapper(gym.Wrapper):
 		return self._obs_to_tensor(obs), np.array(reward, dtype=np.float32), done, info
 	
 
-def make_env(cfg):
+def make_env(cfg, eval=False):
 	"""
 	Make environment.
 	"""
 	gym.logger.set_level(40)
 	env = None
-	for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env]: #, make_myosuite_env, make_xarm_env, make_robopianist_env]:
+	from copy import deepcopy
+	_cfg = deepcopy(cfg)
+	_cfg.seed = cfg.seed + (42 if eval else 0)
+	for fn in [make_dm_control_env, make_metaworld_env]: #make_maniskill_env]: #, make_myosuite_env, make_xarm_env, make_robopianist_env]:
 		try:
-			env = fn(cfg)
+			env = fn(_cfg)
 		except UnknownTaskError:
 			pass
 	if env is None:
 		raise UnknownTaskError(cfg.task)
 	env = TensorWrapper(env)
+	if eval:
+		for _ in range(np.random.randint(21)):
+			env.reset()
 	try: # Dict
 		cfg.obs_shape = {k: v.shape for k, v in env.observation_space.spaces.items()}
 	except: # Box
