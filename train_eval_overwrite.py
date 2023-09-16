@@ -124,5 +124,5 @@ def train_eval(
     driver_train(policy_train, steps=100)
     if should_save(step):
       checkpoint.save()
-  logger.write()
+  print('Completed training at step', int(step))
   logger.write()
