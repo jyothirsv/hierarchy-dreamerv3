@@ -7,7 +7,7 @@ import gym
 import numpy as np
 
 from envs.dmcontrol import make_env as make_dm_control_env
-# from envs.maniskill import make_env as make_maniskill_env
+from envs.maniskill import make_env as make_maniskill_env
 from envs.metaworld import make_env as make_metaworld_env
 from envs.myosuite import make_env as make_myosuite_env
 # from envs.xarm import make_env as make_xarm_env
@@ -59,7 +59,7 @@ def make_env(cfg, eval=False):
 	from copy import deepcopy
 	_cfg = deepcopy(cfg)
 	_cfg.seed = cfg.seed + (42 if eval else 0)
-	for fn in [make_dm_control_env, make_metaworld_env, make_myosuite_env]: #make_maniskill_env]: #, make_xarm_env, make_robopianist_env]:
+	for fn in [make_dm_control_env, make_metaworld_env, make_myosuite_env, make_maniskill_env]: #, make_xarm_env, make_robopianist_env]:
 		try:
 			env = fn(_cfg)
 		except UnknownTaskError:
