@@ -50,6 +50,21 @@ class TensorWrapper(gym.Wrapper):
 		return self._obs_to_tensor(obs), np.array(reward, dtype=np.float32), done, info
 	
 
+class FailSafeWrapper(gym.Wrapper):
+	def __init__(self, env):
+		super().__init__(env)
+		self._prev_transition = None
+
+	def step(self, action):
+		try:
+			self._prev_transition = self.env.step(action)
+			return self._prev_transition
+		except Exception as e:
+			print(f"Exception in step: {e}")
+			prev_obs, prev_reward, _, prev_info = self._prev_transition
+			return prev_obs, prev_reward, True, prev_info
+	
+
 def make_env(cfg, eval=False):
 	"""
 	Make environment.
@@ -67,6 +82,7 @@ def make_env(cfg, eval=False):
 	if env is None:
 		raise UnknownTaskError(cfg.task)
 	env = TensorWrapper(env)
+	env = FailSafeWrapper(env)
 	if eval:
 		for _ in range(np.random.randint(21)):
 			env.reset()
