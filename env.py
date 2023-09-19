@@ -56,6 +56,10 @@ class FailSafeWrapper(gym.Wrapper):
 		self._prev_transition = None
 
 	def step(self, action):
+		# make sure action is between -1 and 1 and not nan
+		eps = 1e-4
+		action = np.nan_to_num(action, nan=0, posinf=1-eps, neginf=-1+eps)
+		action = np.clip(action, -1+eps, 1-eps)
 		try:
 			self._prev_transition = self.env.step(action)
 			return self._prev_transition
