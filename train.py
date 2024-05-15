@@ -5,21 +5,21 @@ import warnings
 warnings.filterwarnings('ignore', '.*truncated to dtype int32.*')
 
 import numpy as np
-import dreamerv3
-from dreamerv3 import embodied
+from dreamerv3 import dreamerv3
+from dreamerv3.dreamerv3 import embodied
 import hydra
 import wandb
 from omegaconf import OmegaConf
-
-from env import make_env
-
+import random
+from envs.locomotion import make_env
+import torch
 
 class WandBOutput:
 	def __init__(self, pattern, cfg):
 		self._pattern = re.compile(pattern)
 		wandb.init(
 				project="dreamerv3",
-				entity='nicklashansen',
+				entity='rintarou',
 				name=str(cfg.seed),
 				group=self.cfg_to_group(cfg),
 				tags=self.cfg_to_group(cfg, return_list=True) + [f"seed:{cfg.seed}"],
@@ -47,9 +47,16 @@ def rand_str(length=6):
 	chars = 'abcdefghijklmnopqrstuvwxyz'
 	return ''.join(np.random.choice(list(chars)) for _ in range(length))
 
+def set_seed(seed):
+	"""Set seed for reproducibility."""
+	random.seed(seed)
+	np.random.seed(seed)
+	torch.manual_seed(seed)
+	torch.cuda.manual_seed_all(seed)
 
 def train(cfg):
 	# See configs.yaml for all options.
+	set_seed(cfg.seed)
 	config = embodied.Config(dreamerv3.configs['defaults'])
 	config = config.update(dreamerv3.configs['small'])
 	config = config.update({
@@ -60,7 +67,7 @@ def train(cfg):
 		'run.eval_every': cfg.eval_freq,
 		'run.eval_eps': cfg.eval_episodes,
 		'envs.amount': 1,
-		'batch_size': 16,
+		'batch_size': 8,
 		'jax.prealloc': False,
 		'encoder.mlp_keys': 'vector',
 		'decoder.mlp_keys': 'vector',
@@ -76,6 +83,7 @@ def train(cfg):
 		embodied.logger.TerminalOutput(),
 		WandBOutput(logdir.name, cfg),
 	])
+	
 
 	# from embodied.envs import from_gym
 	import from_gym_overwrite

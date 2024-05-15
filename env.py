@@ -1,90 +1,149 @@
+from wrapper import TensorWrapper, TimeLimit, HumanoidWrapper, FailSafeWrapper
+
+from envs.tasks.go_to_target import GoToTarget
+from envs.tasks.pick_box import PickBox
+from envs.tasks.walk import Stand, Walk, Run
+from envs.tasks.spin import Spin
+from envs.tasks.poles import Poles
+from envs.tasks.slides import Slides
+from envs.tasks.crawl import Crawl
+
+from dm_control.locomotion.tasks.escape import Escape
+from dm_control.locomotion.tasks.reference_pose import tracking
+from dm_control.locomotion.tasks.go_to_target import GoToTarget
+from dm_control.locomotion.tasks.random_goal_maze import ManyGoalsMaze
+from dm_control.locomotion.tasks.corridors import RunThroughCorridor
+from envs import dm_control_wrapper
+from collections import OrderedDict
 from copy import deepcopy
-import os
-from collections import defaultdict, OrderedDict
-import warnings
-
-import gym
 import numpy as np
+TASKS = {
+	'reach': {
+		'constructor': GoToTarget,
+		'task_kwargs': {},
+	},
+    'maze': {
+		'constructor': ManyGoalsMaze,
+		'task_kwargs': {
+			'arena_type': 'maze',
+			'enable_rgb': True,
+		},
+	},
+	'corridor': {
+		'constructor': RunThroughCorridor,
+		'task_kwargs': {
+			'arena_type': 'corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'gaps-corridor': {
+		'constructor': RunThroughCorridor,
+		'task_kwargs': {
+			'arena_type': 'gaps-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'walls-corridor': {
+		'constructor': RunThroughCorridor,
+		'task_kwargs': {
+			'arena_type': 'walls-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'stairs-corridor': {
+		'constructor': RunThroughCorridor,
+		'task_kwargs': {
+			'arena_type': 'stairs-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'hurdles-corridor': {
+		'constructor': RunThroughCorridor,
+		'task_kwargs': {
+			'arena_type': 'hurdles-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'poles-corridor': {
+        'constructor': RunThroughCorridor,
+        'task_kwargs': {
+			'arena_type': 'poles-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'slides-corridor': {
+        'constructor': RunThroughCorridor,
+        'task_kwargs': {
+			'arena_type': 'slides-corridor',
+			'target_velocity': 6.0,
+		},
+	},
+	'stand': {
+		'constructor': Stand,
+		'task_kwargs': {},
+	},
+	'walk': {
+		'constructor': Walk,
+		'task_kwargs': {},
+	},
+	'run': {
+		'constructor': Run,
+		'task_kwargs': {},
+	},
+	'spin': {
+		'constructor': Spin,
+		'task_kwargs': {},
+	},
+	'pick-box': {
+		'constructor': PickBox,
+		'task_kwargs': {},
+	},
+	'escape': {
+		'constructor': Escape,
+		'task_kwargs': {},
+	},
+	'multiclip': {
+		'constructor': Stand,
+		'task_kwargs': {},
+	},
+	'poles': {
+        'constructor': Poles,
+        'task_kwargs': {'arena_type': 'wide-corridor',
+						'target_velocity': 6.0,
+						'end_on_contact': False,},
+	},
+	'slides': {
+		'constructor': Slides,
+		'task_kwargs': {'arena_type': 'corridor',
+				  'target_velocity': 6.0,},
+	},
+	'crawl': {
+		'constructor': Crawl,
+		'task_kwargs': {'arena_type': 'corridor'},
+	},
+}
 
-from envs.dmcontrol import make_env as make_dm_control_env
-from envs.maniskill import make_env as make_maniskill_env
-from envs.metaworld import make_env as make_metaworld_env
-from envs.myosuite import make_env as make_myosuite_env
-# from envs.xarm import make_env as make_xarm_env
-# from envs.robopianist import make_env as make_robopianist_env
-from envs.exceptions import UnknownTaskError
-
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-
-__RGB_ENCODER__ = None
-__RGB_TRANSFORM__ = None
-
-
-class TensorWrapper(gym.Wrapper):
-	def __init__(self, env):
-		super().__init__(env)
-	
-	def rand_act(self):
-		return self.action_space.sample().astype(np.float32)
-
-	def _try_f32_tensor(self, x):
-		if x.dtype == np.float64:
-			x = x.astype(np.float32)
-		return x
-
-	def _obs_to_tensor(self, obs):
-		if isinstance(obs, dict):
-			for k in obs.keys():
-				obs[k] = self._try_f32_tensor(obs[k])
-		else:
-			obs = self._try_f32_tensor(obs)
-		return obs
-
-	def reset(self):
-		return self._obs_to_tensor(self.env.reset())
-
-	def step(self, action):
-		obs, reward, done, info = self.env.step(action)
-		info = defaultdict(float, info)
-		info['success'] = float(info['success'])
-		return self._obs_to_tensor(obs), np.array(reward, dtype=np.float32), done, info
-	
-
-class FailSafeWrapper(gym.Wrapper):
-	def __init__(self, env):
-		super().__init__(env)
-		self._prev_transition = None
-
-	def step(self, action):
-		# make sure action is between -1 and 1 and not nan
-		eps = 1e-4
-		action = np.nan_to_num(action, nan=0, posinf=1-eps, neginf=-1+eps)
-		action = np.clip(action, -1+eps, 1-eps)
-		try:
-			self._prev_transition = self.env.step(action)
-			return self._prev_transition
-		except Exception as e:
-			print(f"Exception in step: {e}")
-			prev_obs, prev_reward, _, prev_info = self._prev_transition
-			return prev_obs, prev_reward, True, prev_info
-	
 
 def make_env(cfg, eval=False):
 	"""
-	Make environment.
+	Make CMU Humanoid environment for transfer tasks.
 	"""
-	gym.logger.set_level(40)
-	env = None
-	from copy import deepcopy
-	_cfg = deepcopy(cfg)
-	_cfg.seed = cfg.seed + (42 if eval else 0)
-	for fn in [make_dm_control_env, make_metaworld_env, make_myosuite_env, make_maniskill_env]: #, make_xarm_env, make_robopianist_env]:
-		try:
-			env = fn(_cfg)
-		except UnknownTaskError:
-			pass
-	if env is None:
-		raise UnknownTaskError(cfg.task)
+	if cfg.task not in TASKS:
+		raise ValueError('Unknown task:', cfg.task)
+	seed = cfg.seed + (42 if eval else 0)
+	task_kwargs = dict(
+		physics_timestep=tracking.DEFAULT_PHYSICS_TIMESTEP,
+		control_timestep=0.03,
+	)
+	task_kwargs.update(TASKS[cfg.task]['task_kwargs'])
+	
+	env = dm_control_wrapper.DmControlWrapper.make_env_constructor(
+		TASKS[cfg.task]['constructor'])(task_kwargs=task_kwargs)
+	max_episode_steps = int(500)
+	print(f'max_episode_steps: {max_episode_steps}')
+	env = HumanoidWrapper(env, cfg, max_episode_steps=max_episode_steps)
+	env = TimeLimit(env, max_episode_steps=max_episode_steps)
+	cfg.episode_length = max_episode_steps
 	env = TensorWrapper(env)
 	env = FailSafeWrapper(env)
 	if eval:
@@ -95,6 +154,6 @@ def make_env(cfg, eval=False):
 	except: # Box
 		cfg.obs_shape = {cfg.obs_mode: env.observation_space.shape}
 	cfg.action_dim = env.action_space.shape[0]
-	cfg.episode_length = env.max_episode_steps
 	cfg.seed_steps = max(1000, 5*cfg.episode_length)
+
 	return env
