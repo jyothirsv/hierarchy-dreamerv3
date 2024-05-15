@@ -3,8 +3,9 @@ defaults:
 
 # task
 task: cheetah-run
-steps: 2000000
+steps: 3000000
 obs_mode: state
+obs: state
 
 # planning
 mpc: true
@@ -59,11 +60,10 @@ task_set: dmc19
 
 # wandb
 wandb_project: tdmpcv2
-wandb_entity: nicklashansen
+wandb_entity: rintarou
 
 # dirs
 logging_dir: .
-buffer_dir: /data2/nihansen/code/tdmpcv2/buffer
 
 # misc
 seed: 1
