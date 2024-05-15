@@ -67,7 +67,7 @@ def train(cfg):
 		'run.eval_every': cfg.eval_freq,
 		'run.eval_eps': cfg.eval_episodes,
 		'envs.amount': 1,
-		'batch_size': 8,
+		'batch_size': 16,
 		'jax.prealloc': False,
 		'encoder.mlp_keys': 'vector',
 		'decoder.mlp_keys': 'vector',

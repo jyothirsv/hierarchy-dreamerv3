@@ -1,0 +1,12 @@
+cloudpickle
+jax[cuda12]
+jaxlib
+numpy
+optax
+rich
+ruamel.yaml
+tensorflow-cpu
+tensorflow_probability
+mujoco==2.3.1
+mujoco-py==2.1.2.14
+dm-control
